@@ -11,7 +11,6 @@
   "description": "",
   "dependencies": {
     "@openzeppelin/contracts-upgradeable": "^4.7.0",
-    "@openzeppelin/hardhat-upgrades": "^3.8.0",
     "dotenv": "^16.4.7",
     "ethers": "^6.13.5",
     "fs-extra": "^11.2.0",
@@ -20,6 +19,7 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.8",
-    "@nomicfoundation/hardhat-verify": "^2.0.12"
+    "@nomicfoundation/hardhat-verify": "^2.0.12",
+    "@openzeppelin/hardhat-upgrades": "^3.9.0"
   }
 }

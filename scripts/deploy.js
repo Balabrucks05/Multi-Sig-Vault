@@ -1,33 +1,25 @@
 const {ethers, upgrades} = require('hardhat');
 
 async function main() {
+
+    //Deploy
     // const [deployer] = ethers.getSigners();
     // console.log("Deploying the Contract with the account:", deployer.address);
-    //Deploy the SparkoutToken Contract
-
-    // const SparkoutToken = await ethers.getContractFactory("SparkoutToken");
-    // const initialSupply = ethers.parseUnits("50000000000", 18); //500 Billion
-    // const sparkToken = await upgrades.deployProxy(SparkoutToken,[initialSupply],{ 
-    //     initializer: "initialize",
-    //     kind: "uups"
-    // });
-    // const SparkTokenAddress = await sparkToken.getAddress();
-
-    // console.log("Sparkout Token Contract Deployed to:", SparkTokenAddress)
+   //Deploy the SparkoutToken Contract
 
     //Signer Address
     const signer1 = "0xF6D3FAcd79284E64eaB547BeE31Db9e2C1663eE7";
-    const signer2 = "0xdDE0D25b44f2047481e0eE7F9fB13e6137733334";
-    const signer3 = "0x6EB1EED61F47D16598D4B017D05e400C0a20E6E6";
+    const signer2 = "0x2CCef8AbaE44c1645354fcf916cEFc9e0ae14937";
+    const signer3 = "0xAE1CA22AdFfD54b83937B5026De5e8aA43152A09";
 
     //Array of initial signers
     const initialSigners = [signer1,signer2,signer3];
 
-    //Number of required Approvals
+    // //Number of required Approvals
     const requiredApprovals = 3;
 
     //Token Address
-    const _tokenAddress = "0xF027effd400A3dA01a9571b02e192d0B7daB626a";
+    const _tokenAddress = "0x6fe9c7Fb488840cF94d8A1F8Dfdc90004542Ea9E";
 
     //Deploy the MultiSigTokenVault Contract
     const MultiSigTokenVault = await ethers.getContractFactory("MultiSigTokenVault");
@@ -41,7 +33,18 @@ async function main() {
     console.log("MultiSigTokenVault deployed to:", MultiVaultTokenAddress );
     console.log("Signers used for deployment:", initialSigners);
 
-}
+    // //New MultiSigTokenVault instance using the factory
+    // const MultiSigTokenVaultFactory = await ethers.getContractFactory("MultiSigTokenVaultFactory");
+    // const vaultFactory = await upgrades.deployProxy(MultiSigTokenVaultFactory, [],{});
+    // const vaultFactoryAddress = await vaultFactory.getAddress();
+    // console.log("MultiSigTokenVaultFactory deployed to:", vaultFactoryAddress);
+
+    // // Use the factory to create a new vault
+    // const vaultAddress = await vaultFactory.createVault(initialSigners, requiredApprovals, _tokenAddress);
+
+    // console.log("New Vault Address:", vaultAddress);
+
+ }
 
 main().catch((error) => {
     console.error(error);
