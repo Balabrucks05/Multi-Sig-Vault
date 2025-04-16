@@ -6,13 +6,15 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 contract MultiSigTokenVault is
     Initializable,
     UUPSUpgradeable,
     OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    PausableUpgradeable
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -45,6 +47,7 @@ contract MultiSigTokenVault is
     event SignerRemoved(address indexed removedSigner);
     event TokensDeposited(address indexed depositor, uint256 amount);
     event WithdrawToken(address indexed token, address indexed to, uint256 amount);
+    event NativeWithdrawn(address indexed to, uint256 amount);
 
     modifier onlySigner() {
         require(isSigner[msg.sender], "Not an authorized signer");
@@ -93,6 +96,8 @@ contract MultiSigTokenVault is
         token = IERC20Upgradeable(_tokenAddress);
 
         __Ownable_init();
+        __ReentrancyGuard_init();
+        __Pausable_init();
     }
 
     //Authorization to allow contract upgrades
@@ -101,7 +106,7 @@ contract MultiSigTokenVault is
     ) internal override onlyOwner {}
 
     //Add a new signer
-    function addSigner(address newSigner) external nonReentrant onlySigner {
+    function addSigner(address newSigner) external nonReentrant onlyOwner whenNotPaused {
         require(!isSigner[newSigner], "Already a Signer");
         signers.push(newSigner);
         isSigner[newSigner] = true;
@@ -112,7 +117,7 @@ contract MultiSigTokenVault is
     //Remove an existing Signer
     function removeSigner(
         address signerToRemove
-    ) external nonReentrant onlySigner {
+    ) external nonReentrant onlyOwner whenNotPaused {
         require(isSigner[signerToRemove], "Not a Signer");
         require(
             signers.length - 1 >= requiredApprovals,
@@ -133,7 +138,7 @@ contract MultiSigTokenVault is
     }
 
     //Deposit ERC20 tokens into the vault
-    function deposit(uint256 amount) external nonReentrant {
+    function deposit(uint256 amount) external nonReentrant whenNotPaused {
         require(token.balanceOf(msg.sender) >= amount, "Insufficient balance");
 
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -144,7 +149,7 @@ contract MultiSigTokenVault is
     function proposeTransaction(
         address to,
         uint256 amount
-    ) external nonReentrant onlySigner {
+    ) external nonReentrant onlySigner whenNotPaused {
         require(amount > 0, "Amount must be greater than 0");
         transactions.push(
             Transaction({to: to, amount: amount, approvals: 0, executed: false})
@@ -161,7 +166,7 @@ contract MultiSigTokenVault is
     //Approve a proposed Transaction
     function approveTransaction(
         uint256 txId
-    ) external onlySigner txExists(txId) notExecuted(txId) notApproved(txId) {
+    ) external onlySigner txExists(txId) notExecuted(txId) notApproved(txId) whenNotPaused {
         Transaction storage txn = transactions[txId];
         transactionApprovals[txId][msg.sender] = true;
         txn.approvals += 1;
@@ -175,7 +180,7 @@ contract MultiSigTokenVault is
 
     function executeTransaction(
         uint256 txId
-    ) internal nonReentrant txExists(txId) notExecuted(txId) {
+    ) internal nonReentrant txExists(txId) notExecuted(txId) whenNotPaused {
         Transaction storage txn = transactions[txId];
         require(
             token.balanceOf(address(this)) >= txn.amount,
@@ -256,19 +261,27 @@ contract MultiSigTokenVault is
     function withdrawToken(
         address _token,
         uint256 _amount
-    ) external onlyOwner nonReentrant {
+    ) external onlyOwner nonReentrant whenNotPaused {
         require(_token != address(0), "Address cant be zero address");
         token.safeTransfer(msg.sender, _amount);
         emit WithdrawToken(_token, msg.sender, _amount);
     }
 
-    function withdrawMATIC(address payable to, uint256 amount) external onlyOwner nonReentrant {
-    require(to != address(0), "Invalid recipient address");
-    require(amount > 0, "Amount must be greater than 0");
-    require(amount <= address(this).balance, "Withdrawal amount exceeds MATIC balance");
+   function withdrawNative(address payable to, uint256 amount) external onlyOwner nonReentrant whenNotPaused {
+        require(to != address(0), "Invalid recipient address");
+        require(amount > 0, "Amount must be greater than 0");
+        require(amount <= address(this).balance, "Withdrawal amount exceeds native balance");
 
-    to.transfer(amount);
+        to.transfer(amount);
 
-    emit TransactionExecuted(transactions.length, to, amount); // Reuse existing event
-}
+        emit NativeWithdrawn(to, amount);
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 }

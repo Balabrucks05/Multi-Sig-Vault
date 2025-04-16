@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -23,7 +23,7 @@ contract MultiSigTokenVaultFactory is Initializable, UUPSUpgradeable, OwnableUpg
         address _tokenAddress
     ) external returns (address) {
         // Deploy the new vault contract as a UUPS proxy
-        MultiSigTokenVault newVault = MultiSigTokenVault(address(0));  // Placeholder
+        MultiSigTokenVault newVault = new MultiSigTokenVault();  // Deploy the contract
 
         // Deploy the UUPS proxy and call the initialize function of MultiSigTokenVault
         address vaultProxy = address(newVault);

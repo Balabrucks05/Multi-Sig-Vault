@@ -8,8 +8,8 @@ async function main() {
    //Deploy the SparkoutToken Contract
 
     //Signer Address
-    const signer1 = "0xF6D3FAcd79284E64eaB547BeE31Db9e2C1663eE7";
-    const signer2 = "0x2CCef8AbaE44c1645354fcf916cEFc9e0ae14937";
+    const signer1 = "0xde6541a09a4E8a9cBF7d8214B1AFf0e81880fF02";
+    const signer2 = "0x321Ca5af7d80b6Db0D7D30E4A6c2b5b71D69FfE2";
     const signer3 = "0xAE1CA22AdFfD54b83937B5026De5e8aA43152A09";
 
     //Array of initial signers
